@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import httpService from "./services/httpService"; // Hidden axios behind this http module.
+import {ToastContainer} from "react-toastify";
 import config from "./config.json";
+import 'react-toastify/dist/ReactToastify.css';
 import "./App.css";
 
 
@@ -81,8 +83,10 @@ class App extends Component {
   };
 
   render() {
+
     return (
       <React.Fragment>
+        <ToastContainer position="top-right"/>
         <button className="btn btn-primary" onClick={this.handleAdd}>
           Add
         </button>
