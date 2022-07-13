@@ -1,10 +1,14 @@
 import React, { Component } from "react";
-import axios from "axios";
+import httpService from "./services/httpService"; // Hidden axios behind this http module.
+import config from "./config.json";
 import "./App.css";
 
 
 
-const apiEndpoint= 'https://jsonplaceholder.typicode.com/posts';
+
+
+
+
 class App extends Component {
   state = {
     posts: []
@@ -15,14 +19,14 @@ class App extends Component {
   async componentDidMount() {
 
     //Promise can be pending or resolved(success) or else rejected(failure)
-    const {data:posts} = await axios.get(apiEndpoint); // Getting the data from the http request. 
+    const {data:posts} = await httpService.get(config.apiEndpoint); // Getting the data from the http request. 
     // data: posts is the response object coming from the server. So we used object destructuring. 
     //console.log(promise);
 
     // Now to get response from promise we use await keyword and store them in a const.
     //1- const response = await promise;
     //console.log(response);
-    this.setState({posts});
+    this.setState({ posts });
 
   }
 
@@ -31,7 +35,7 @@ class App extends Component {
   // Creating a data.
   handleAdd = async () => {
     const obj={title: 'a', body:'b'};
-   const {data: post} = await axios.post(apiEndpoint, obj);
+   const {data: post} = await httpService.post(config.apiEndpoint, obj);
    
    const posts=[post, ...this.state.posts];
    this.setState({posts});
@@ -39,8 +43,8 @@ class App extends Component {
   };
 
   handleUpdate = async post => {
-    post.title="UPDATED!"
-     await axios.put(apiEndpoint + '/' + post.id, post );
+    post.title = "UPDATED!"
+     await httpService.put(config.apiEndpoint + '/' + post.id, post );
 
     const posts=[...this.state.posts];
     const index =posts.indexOf(post);
@@ -54,12 +58,26 @@ class App extends Component {
   };
 
   handleDelete = async post => {
-    await axios.delete(apiEndpoint + '/'+ post.id);
+    const originalPosts = this.state.posts;
 
-
+    // Implemented Optimistic Update to the UI.
     const posts = this.state.posts.filter(p => p.id !== post.id);
     this.setState({posts});
 
+   
+
+      try{
+        await httpService.delete( "s" + config.apiEndpoint + "/" + post.id);
+        throw new Error("");
+        
+      } catch (ex) {
+
+        console.log("Handle  Catch Block.");
+        if(ex.response && ex.response.status === 404)
+        alert("This post is already been deleted.");
+       
+      this.setState( {posts: originalPosts});
+      }
   };
 
   render() {
